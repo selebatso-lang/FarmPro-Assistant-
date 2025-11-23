@@ -1,0 +1,94 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Create Capacitor project structure
+      run: |
+        # Create proper project structure
+        mkdir -p android/app/src/main/assets
+        mkdir -p android/app/src/main/res
+        mkdir -p www
+        
+        # Copy your HTML file to www directory
+        cp index.html www/
+        
+        # Create package.json
+        cat > package.json << EOF
+        {
+          "name": "farmpro-assist",
+          "version": "1.0.0",
+          "description": "FarmPro Assistant App",
+          "main": "index.html",
+          "scripts": {
+            "build": "echo 'Building web assets'",
+            "cap": "npx cap"
+          },
+          "dependencies": {
+            "@capacitor/core": "^5.0.0",
+            "@capacitor/android": "^5.0.0"
+          },
+          "devDependencies": {
+            "@capacitor/cli": "^5.0.0"
+          }
+        }
+        EOF
+        
+        # Create capacitor.config.json
+        cat > capacitor.config.json << EOF
+        {
+          "appId": "com.farmpro.assist",
+          "appName": "FarmPro Assist",
+          "webDir": "www",
+          "bundledWebRuntime": false
+        }
+        EOF
+        
+    - name: Install Capacitor and dependencies
+      run: |
+        npm install
+        npx cap init "FarmPro Assist" "com.farmpro.assist" --web-dir www
+        npx cap add android
+        
+    - name: Build Android APK
+      run: |
+        cd android
+        chmod +x ./gradlew
+        ./gradlew assembleDebug --no-daemon
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: farmpro-assist-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
+
+    - name: Upload build reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-reports
+        path: android/app/build/reports/
+        retention-days: 7
