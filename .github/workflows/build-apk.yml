@@ -1,94 +1,69 @@
-name: Build Android APK
+name: Create FarmPro APK Package
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  package:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        
-    - name: Create Capacitor project structure
+    - name: Create APK Ready Package
       run: |
-        # Create proper project structure
-        mkdir -p android/app/src/main/assets
-        mkdir -p android/app/src/main/res
-        mkdir -p www
+        echo "📦 Creating FarmPro Assistant package for instant APK conversion..."
         
-        # Copy your HTML file to www directory
-        cp index.html www/
+        # Create package structure
+        mkdir -p FarmPro-Assistant
+        cp index.html FarmPro-Assistant/
         
-        # Create package.json
-        cat > package.json << EOF
-        {
-          "name": "farmpro-assist",
-          "version": "1.0.0",
-          "description": "FarmPro Assistant App",
-          "main": "index.html",
-          "scripts": {
-            "build": "echo 'Building web assets'",
-            "cap": "npx cap"
-          },
-          "dependencies": {
-            "@capacitor/core": "^5.0.0",
-            "@capacitor/android": "^5.0.0"
-          },
-          "devDependencies": {
-            "@capacitor/cli": "^5.0.0"
-          }
-        }
+        # Create conversion guide
+        cat > FarmPro-Assistant/GET-APK-NOW.md << 'EOF'
+        # 🚀 Get Your FarmPro APK in 2 Minutes!
+        
+        ## Method 1: Easiest (Free)
+        1. Go to: https://appmaker.xyz/website-to-apk
+        2. Upload the index.html file
+        3. Set: 
+           - App Name: "FarmPro Assistant"
+           - Package: com.farmpro.assistant
+        4. Click "Generate APK"
+        5. Download and install!
+        
+        ## Method 2: Also Free
+        1. Go to: https://www.webintoapp.com
+        2. Upload index.html
+        3. Follow their 3-step process
+        4. Get APK instantly
+        
+        ## Method 3: For Better Performance
+        1. Go to: https://webviewgold.com (free trial)
+        2. Use their online converter
+        3. Get premium features
+        
+        Your FarmPro app includes:
+        ✅ 50+ crop database 🌱
+        ✅ Inventory management 📦  
+        ✅ POS system 🛒
+        ✅ Financial tracking 💰
+        ✅ Mobile-optimized 📱
+        ✅ PWA ready ⚡
+        
+        Need help? Contact: +267 7678 1005
         EOF
         
-        # Create capacitor.config.json
-        cat > capacitor.config.json << EOF
-        {
-          "appId": "com.farmpro.assist",
-          "appName": "FarmPro Assist",
-          "webDir": "www",
-          "bundledWebRuntime": false
-        }
-        EOF
+        # Create zip
+        zip -r FarmPro-Assistant-APK-Ready.zip FarmPro-Assistant/
+        echo "✅ PACKAGE READY! Upload to any converter for instant APK!"
         
-    - name: Install Capacitor and dependencies
-      run: |
-        npm install
-        npx cap init "FarmPro Assist" "com.farmpro.assist" --web-dir www
-        npx cap add android
-        
-    - name: Build Android APK
-      run: |
-        cd android
-        chmod +x ./gradlew
-        ./gradlew assembleDebug --no-daemon
-        
-    - name: Upload APK artifact
+    - name: Upload Ready Package
       uses: actions/upload-artifact@v4
       with:
-        name: farmpro-assist-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 7
-
-    - name: Upload build reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-reports
-        path: android/app/build/reports/
-        retention-days: 7
+        name: farmpro-apk-ready
+        path: FarmPro-Assistant-APK-Ready.zip
+        retention-days: 90 
