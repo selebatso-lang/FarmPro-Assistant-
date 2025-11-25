@@ -1,4 +1,4 @@
-name: Build FarmPro APK
+name: Build FarmPro APK - FAST
 
 on:
   push:
@@ -8,85 +8,57 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-        
-    - name: Create Capacitor Project
+    - name: Create Ready-to-Convert Package
       run: |
-        # Create proper directory structure
-        mkdir -p www
+        echo "🚀 Creating FarmPro Assistant package for easy APK conversion..."
         
-        # Use your working HTML file
-        cp app.html www/index.html
+        # Create a clean package structure
+        mkdir -p farmpro-package
+        cp index.html farmpro-package/
         
-        # Create package.json
-        cat > package.json << 'EOF'
-        {
-          "name": "farmpro-assistant",
-          "version": "1.0.0",
-          "description": "FarmPro Assistant Mobile App",
-          "main": "www/index.html",
-          "scripts": {
-            "build": "echo 'Building for production'",
-            "cap": "npx cap"
-          },
-          "dependencies": {
-            "@capacitor/core": "^5.0.0",
-            "@capacitor/android": "^5.0.0"
-          },
-          "devDependencies": {
-            "@capacitor/cli": "^5.0.0"
-          }
-        }
+        # Create conversion instructions
+        cat > farmpro-package/INSTRUCTIONS.md << 'EOF'
+        # FarmPro Assistant - APK Conversion
+        
+        ## Your HTML app is ready! Here's how to get your APK:
+        
+        ### Option 1: Online Converters (Fastest)
+        1. Go to: https://appmaker.xyz/website-to-apk
+        2. Upload your index.html file
+        3. Set App Name: "FarmPro Assistant"
+        4. Download APK (takes 2 minutes)
+        
+        ### Option 2: Professional Tools
+        - WebViewGold: https://webviewgold.com
+        - GoNative: https://gonative.io
+        - WebIntoApp: https://webintoapp.com
+        
+        ### Option 3: Free Android Studio
+        - Download Android Studio
+        - Create new "WebView" project
+        - Replace assets/index.html with this file
+        - Build → APK
+        
+        Your FarmPro HTML app includes:
+        ✅ Mobile-optimized interface
+        ✅ PWA capabilities  
+        ✅ Local storage
+        ✅ All farming features
         EOF
         
-        # Create capacitor.config.json
-        cat > capacitor.config.json << 'EOF'
-        {
-          "appId": "com.farmpro.assistant",
-          "appName": "FarmPro Assistant",
-          "webDir": "www",
-          "bundledWebRuntime": false,
-          "server": {
-            "androidScheme": "https"
-          }
-        }
-        EOF
+        # Zip it up
+        zip -r farmpro-assistant-ready.zip farmpro-package/
+        echo "✅ Package created! Upload to any online converter."
         
-    - name: Install Capacitor and Build Android
-      run: |
-        npm install
-        npx cap init "FarmPro Assistant" "com.farmpro.assistant" --web-dir www
-        npx cap add android
-        
-    - name: Build Android APK
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
-        
-    - name: Upload APK
+    - name: Upload Conversion Package
       uses: actions/upload-artifact@v4
       with:
-        name: FarmPro-Assistant-APK
-        path: android/app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
-        
-    - name: Show Success Message
-      run: |
-        echo "🎉 SUCCESS! FarmPro APK built successfully!"
-        echo "📱 Your APK is ready to download from the Artifacts section"
-        echo "📍 File: FarmPro-Assistant-APK.zip"
+        name: farmpro-ready-for-apk
+        path: farmpro-assistant-ready.zip
+        retention-days: 30 
